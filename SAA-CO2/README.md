@@ -20,70 +20,23 @@ An Amazon EBS volume is a durable, block-level storage device that you can attac
     * Provisioned IOPS SSD, built for  (io1, io2, and io2 block express)
     * Throughput Optimized HDD (st1)
     * Cold HDD (sc1)
-    * Magnetic (standard).
+    * Magnetic (standard)
 
-<table>
-    <tr>
-        <th>Class</th>
-        <th>Type</th>
-        <th>Max IOPS per volume</th>
-        <th>Max throughput per volume</th>
-        <th>Multi-attach</th>
-        <th>Boot volume</th>
-    </tr>
-    <tr>
-        <td rowspan=2>General Purpose SSD</td>
-        <td>gp3</td>
-        <td rowspan=2>16,000 (16 KiB I/O)</td>
-        <td>1,000 MiB/s</td>
-        <td rowspan=2>Not supported</td>
-        <td rowspan=2>Supported</td>
-    </tr>
-    <tr>
-        <td>gp2</td>
-        <td>250 MiB/s</td>
-    </tr>
-    <tr>
-        <td rowspan=3>Provisioned IOPS SSD</td>
-        <td>io2 Block Express</td>
-        <td>256,000 (16 KiB I/O)</td>
-        <td>4,000 MiB/s	</td>
-        <td rowspan=3>Supported</td>
-        <td rowspan=3>Supported</td>
-    </tr>
-    <tr>
-        <td>io2</td>
-        <td rowspan=2>64,000 (16 KiB I/O) †</td>
-        <td rowspan=2>1,000 MiB/s †</td>
-    </tr>
-    <tr>
-        <td>io1</td>
-    </tr>
-    <tr>
-        <td>Throughput Optimized HDD</td>
-        <td>st1</td>
-        <td>500 (1 MiB I/O)</td>
-        <td>500 MiB/s</td>
-        <td>Not supported</td>
-        <td>Not supported</td>
-    </tr>
-    <tr>
-        <td>Cold HDD</td>
-        <td>sc1</td>
-        <td>250 (1 MiB I/O)</td>
-        <td>250 MiB/s</td>
-        <td>Not supported</td>
-        <td>Not supported</td>
-    </tr>
-    <tr>
-        <td>Magnetic (Previous Generation)</td>
-        <td>standard</td>
-        <td>40–200</td>
-        <td>40–90 MiB/s</td>
-        <td>Not supported</td>
-        <td>Supported</td>
-    </tr>
-</table>
+
+
+
+
+| Class                          | Type              | Size per I/O | Max IOPS per volume | Max throughput per volume | Multi-attach  | Boot volume   |
+| :----------------------------- | ----------------- | ------------ | ------------------- | ------------------------- | ------------- | ------------- |
+| General Purpose SSD            | gp3               | 16 KiB       | 16,000              | 1,000 MiB/s               | Not supported | Supported     |
+| General Purpose SSD            | gp2               | 16 KiB       | 16,000              | 250 MiB/s                 | Not supported | Supported     |
+| Provisioned IOPS SSD           | io2 Block Express | 16 KiB       | 256,000             | 4,000 MiB/s               | Supported     | Supported     |
+| Provisioned IOPS SSD           | io2               | 16 KiB       | 64,000†             | 1,000 MiB/s†              | Supported     | Supported     |
+| Provisioned IOPS SSD           | io1               | 16 KiB       | 64,000†             | 1,000 MiB/s†              | Supported     | Supported     |
+| Throughput Optimized HDD       | st1               | 1 MiB        | 500                 | 500 MiB/s                 | Not supported | Not supported |
+| Cold HDD                       | sc1               | 1 MiB        | 250                 | 250 MiB/s                 | Not supported | Not supported |
+| Magnetic (Previous Generation) | standard          |              | 40–200              | 40–90 MiB/s               | Not supported | Supported     |
+
 † Maximum IOPS and throughput are guaranteed only on Instances built on the Nitro System provisioned with more than 32,000 IOPS
 
 
