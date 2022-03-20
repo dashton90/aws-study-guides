@@ -6,7 +6,11 @@ Table of Contents
 1. <a href="#elastic-compute-cloud-ec2">Elastic Compute Cloud (EC2)</a>
 2. <a href="#elastic-block-store-ebs">Elastic Block Store (EBS)</a>
 3. <a href="#elastic-network-interfaces-eni">Elastic Network Interfaces (ENI)</a>
-4. <a href="#elastic-load-balancers-elb">Elastic Load Balancers (ELB)</a>
+4. <a href="#elastic-load-balancing-elb">Elastic Load Balancing (ELB)</a>
+    * <a href="#application-load-balancing">Application Load Balancing (ALB)</a>
+    * <a href="#network-load-balancing">Network Load Balancing (NLB)</a>
+    * <a href="#classic-load-balancing">Classic Load Balancing (CLB)</a>
+    * <a href="#gateway-load-balancing">Gateway Load Balancing (GWLB)</a>
 
 
 Elastic Compute Cloud (EC2)
@@ -111,6 +115,7 @@ However, you can configure more ENIs and attach them to the same instance.
     * When the instance is being launched (cold attach).
 * You can move a network interface from one instance to another, if the instances are in the same Availability Zone and VPC but in different subnets.
 * ENIs can be used as a cheap failover mechanism in the event an instance fails.
+
 ```mermaid
 sequenceDiagram
     participant EC2_1 as EC2 Instance 1
@@ -132,10 +137,97 @@ sequenceDiagram
     * You can apply different security groups to each ENI so that traffic port 80 is allowed through the first ENI, and traffic from the private subnet on port 22 is allowed through the second ENI.
 ![EC2 with Multiple ENIs](assets/vpc_multi_vif_arch_2.png)
 
-Elastic Load Balancers (ELB)
+
+Elastic Load Balancing (ELB)
 ==
 Elastic Load Balancing (ELB) automatically distributes incoming application traffic across multiple targets and virtual appliances. Targets can be in one or more Availability Zones (AZs).
+A load balancer serves as the single point of contact for clients.
 
+* Instances behind the ELB are reported as `InService` or `OutOfService`.
+* When an EC2 instance behind an ELB fails a health check, the ELB stops sending traffic to that instance.
+* If your application stops responding the ELB will respond with a 504 error.
+* ELB supports four types of load balancers:
+    * Application Load Balancers (ALBs)
+    * Network Load Balancers (NLBs)
+    * Classic Load Balancers (CLBs)
+    * Gateway Load Balancers (GWLBs)
+* When setting up an ELB you must define one of more _listeners_.
+* Each listener has one or more rules (including a default rule).
+* Listeners use rules to forward requests to the appropriate _target group_.
+* A target group is used to route requests to one or more registered targets.
+* A target can belong to one or more target groups.
+* Health checks are defined at the target group level.
+
+```mermaid
+flowchart TD
+    subgraph Possible Elastic Load Balancer Configuration
+        ELB["Elastic Load Balancer"]
+        subgraph l1 ["Listener 1"]
+            r1_1["Rule 1"]
+        end
+        subgraph l2 ["Listener 2"]
+            r2_1["Rule 1"]
+            r2_2["Rule 2"]
+        end
+        ELB --> l1
+        ELB --> l2
+        subgraph tg1 ["Target Group 1"]
+            t1_1["Target"]
+            t1_2["Target"]
+            hc1("Health Check")
+        end
+        l1 -->|Rule 1| tg1
+        l1 -->|Default Rule| tg1
+        subgraph tg2 ["Target Group 2"]
+            t2_1["Target"]
+            t2_2["Target"]
+            hc2("Health Check")
+        end
+        l2 -->|Rule 1| tg2
+        l2 -->|Default Rule| tg2
+        subgraph tg3 ["Target Group 3"]
+            t3_1["Target"]
+            hc3("Health Check")
+        end
+        l2 -->|Rule 2| tg3
+    end
+    classDef healthcheck fill:#0c0,stroke-dasharray: 5 5;
+    class hc1,hc2,hc3 healthcheck;
+```
+
+## Application Load Balancing
+ALBs support load balancing of applications using HTTP and HTTPS (layer 7).
+* ALBs allow routing based on
+    * Path conditions of the URL (e.g., /img/*)
+    * Query string (e.g., version=v1)
+    * The IP address of the client (`X-Forwarded-For` request header)
+* A target can be one of three types:
+    * Instance ID
+    * IP Address
+    * Lambda function
+* By default, an Application Load Balancer routes each request independently to a registered target based on the chosen load-balancing algorithm.
+* _Sticky sessions_ enable the load balancer to bind a user's session to a specific target. This is useful for servers that maintain state information.
+
+## Network Load Balancing
+NLBs support load balancing of applications on TCP and UDP (layer 4).
+
+* A network load balancer can handle millions of requests per second.
+* A target can be one of three types:
+    * Instance ID
+    * IP Address
+    * Application Load Balancer
+
+## Classic Load Balancing
+Classic Load Balancers are the first generation of AWS load balancers.
+CLBs support balancing on either HTTP/HTTPS, or TCP.
+AWS recommends using either ALBs of NLBs in favour of CLBs
+
+## Gateway Load Balancing
+GWLBs operate at the network layer (layer 3).
+
+* A target can be one of two types:
+    * Instance ID
+    * IP Address
 
 
 Amazon Cognito
