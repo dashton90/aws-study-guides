@@ -27,7 +27,7 @@ An Amazon EBS volume is a durable, block-level storage device that you can attac
 * `io1` and `io2` volumes can be attached to up to 16 Nitro-based instances.
 * All other volume types can be attached to a single instance.
 * Volumes and instances must be in the same Availability Zone.
-* The below table gives a high-level overview of each volume type.
+* The table below gives a high-level overview of each volume type.
 
 | Class                          | Type              | Size per I/O | Max IOPS per volume | Max throughput per volume | Multi-attach  | Boot volume   |
 | :----------------------------- | ----------------- | ------------ | ------------------- | ------------------------- | ------------- | ------------- |
@@ -64,7 +64,7 @@ An Amazon EBS volume is a durable, block-level storage device that you can attac
     * All volumes created from those snapshots
 * You cannot directly encrypt existing unencrypted volumes or snapshots.
 * You can create encrypted volumes or snapshots from unencrypted volumes or snapshots.
-* The diagram below demonstrates how to effectively encrypt an unencrypted EBS volume.
+* The diagram below demonstrates how to create an encrypted volume an from an unencrypted volume.
 ```mermaid
 flowchart LR
     A[Unencrypted<br/>EBS Volume]
