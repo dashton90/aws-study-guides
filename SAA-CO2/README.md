@@ -1,5 +1,16 @@
 # AWS SAA-C02 Study Guide
 
+This guide is designed to give you a solid understanding of all material covered on the AWS Certified Solutions Architect - Associate exam.
+It does assume some prior knowledge of AWS resources, and should be used as a companion guide to one or more of:
+1. Stéphane Maarek's [Ultimate AWS Certified Solutions Architect Associate](https://links.datacumulus.com/aws-certified-sa-associate-coupon)
+2. A Cloud Guru's [Certified Solutions Architect - Associate](https://acloudguru.com/course/aws-certified-solutions-architect-associate-saa-c02)
+3. AWS FAQs and whitepapers
+4. Andrew Brown's [AWS Certified Solutions Architect - Associate 2020 (PASS THE EXAM!)](https://www.youtube.com/watch?v=Ia-UEYYR44s)
+
+To test your skills before writing the exam you should try:
+1. Tutorials Dojo's [AWS Certified Solutions Architect Associate Practice Exams](https://portal.tutorialsdojo.com/courses/aws-certified-solutions-architect-associate-practice-exams/)
+2. Stephane Maarek's [Practice Exams | AWS Certified Solutions Architect Associate](https://links.datacumulus.com/aws-cert-solution-architect-pt-coupon)
+
 
 Table of Contents
 ==
