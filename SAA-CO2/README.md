@@ -5,12 +5,14 @@ Table of Contents
 ==
 1. <a href="#elastic-compute-cloud-ec2">Elastic Compute Cloud (EC2)</a>
 2. <a href="#elastic-block-store-ebs">Elastic Block Store (EBS)</a>
-3. <a href="#elastic-load-balancers-elb">Elastic Load Balancers (ELB)</a>
+3. <a href="#elastic-network-interfaces-eni">Elastic Network Interfaces (ENI)</a>
+4. <a href="#elastic-load-balancers-elb">Elastic Load Balancers (ELB)</a>
 
 
 Elastic Compute Cloud (EC2)
 ==
 Elastic Compute Cloud is
+
 
 Elastic Block Store (EBS)
 ==
@@ -88,6 +90,47 @@ flowchart LR
 * It is good practice to tag all instances and snapshots.
 
 
+Elastic Network Interfaces (ENI)
+==
+An elastic network interface is a networking component that represents a virtual network card.
+When you launch an EC2 instance, a default ENI is created and attched to the instance.
+However, you can configure more ENIs and attach them to the same instance.
+* Each ENI can include:
+    * A primary private IPv4 address from the IPv4 address range of your VPC
+    * One or more secondary private IPv4 addresses from the IPv4 address range of your VPC
+    * One Elastic IP address (IPv4) per private IPv4 address
+    * One public IPv4 address
+    * One or more IPv6 addresses
+    * One or more security groups
+    * A MAC address
+    * A source/destination check flag
+* ENI is used mainly for low-budget, high-availability network solutions.
+* You can attach a network interface to an EC2 instance in the following ways:
+    * When it's running (hot attach)
+    * When it's stopped (warm attach)
+    * When the instance is being launched (cold attach).
+* You can move a network interface from one instance to another, if the instances are in the same Availability Zone and VPC but in different subnets.
+* ENIs can be used as a cheap failover mechanism in the event an instance fails.
+```mermaid
+sequenceDiagram
+    participant EC2_1 as EC2 Instance 1
+    loop Every five seconds
+        Cloudwatch-->>EC2_1: describe-instance-status
+    end
+    EC2_1->>Cloudwatch: Unhealthy
+    Cloudwatch->>Lambda: SNS
+    Lambda->>Lambda: Detach ENI from Instance 1
+    Lambda->>Lambda: Attach ENI to Instance 2
+    Lambda-->>EC2 Instance 2: start-instance
+```
+* While the above pattern is valid, EC2 auto-scaling is the preferred approach.
+* ENIs are also often used as the primary network interfaces for Docker containers launched on ECS using Fargate.
+* Some commercial software licenses are tied to a particular MAC address. You can license it against the MAC address of the ENI. Later, if you need to change instances or instance types, you can launch a replacement instance with the same ENI and MAC address.
+* ENIs can be used to create a dual-homed environment for your web, application, and database servers. In this example two ENIs are attached to a single EC2 instance which is functioning as a web server:
+    * The instance’s first ENI would be attached to a public subnet, routing 0.0.0.0/0 (all traffic) to the VPC’s Internet Gateway.
+    * The instance’s second ENI would be attached to a private subnet, with 0.0.0.0 routed to the VPN Gateway connected to your corporate network. You would use the private network for SSH access, management, logging, and so forth.
+    * You can apply different security groups to each ENI so that traffic port 80 is allowed through the first ENI, and traffic from the private subnet on port 22 is allowed through the second ENI.
+![EC2 with Multiple ENIs](assets/vpc_multi_vif_arch_2.png)
 
 Elastic Load Balancers (ELB)
 ==
