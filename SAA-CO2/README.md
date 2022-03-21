@@ -26,8 +26,94 @@ Table of Contents
 
 Elastic Compute Cloud (EC2)
 ==
-Elastic Compute Cloud is
+Elastic Compute cloud creates virtual servers in the cloud. 
+* Each virtual server is called an _instance_.
+* Instances are created from _Amazon Machine Image (AMI)_ which are templates describing the operating system and additional software on the instance.
+* AWS provides a number of configurations for CPU, memory, storage, and networking capacity for your instances, known as _instance types_.
 
+## EC2 Instance Pricing
+```
+For the SAA-C02 exam, the most important pricing models are on-demand, reserved, and spot.
+```
+### On-Demand Instances
+* Spin up instances as needed, and pay by the second.
+* You have full control over when to launch, stop, hibernate, start, reboot, or terminate the instance.
+* You should use on-demand instances for applications with short-term, irregular workloads that cannot be interrupted.
+
+### Reserved Instances
+* Commit to a consistent instance configuration, including instance type and region, for a term of 1 or 3 years.
+* The payment options for reserved instances are:
+    * __All Upfront__: Full payment is made at the start of the term, with no other costs or additional hourly charges incurred for the remainder of the term, regardless of hours used.
+    * __Partial Upfront__: A portion of the cost must be paid upfront and the remaining hours in the term are billed at a discounted hourly rate, regardless of whether the Reserved Instance is being used.
+    * __No Upfront__: You are billed a discounted hourly rate for every hour within the term, regardless of whether the Reserved Instance is being used. No upfront payment is required.
+
+### Spot Instances
+* Request unused EC2 instances, which can reduce your Amazon EC2 costs significantly.
+* Spot instances are charged per second at the spot price which is set by Amazon EC2.
+* Spot instances are a cost-effective choice if you can be flexible about when your applications run and if your applications can be interrupted.
+* If EC2 needs the capacity back, spot instances can be interrupted with two minutes notice.
+
+### Savings Plans
+* Commit to a consistent amount of usage per hour, for a term of 1 or 3 year.
+* Savings plan prices are up to 66% cheaper than on-demand prices.
+* Any usage beyond the amount covered by the savings plan will be billed at the on-demand rate.
+
+### Dedicated Hosts
+* Pay for a physical host that is fully dedicated to running your instances.
+
+### Dedicated Instances
+* Instances that run in a virtual private cloud (VPC) on hardware that's dedicated to a single customer.
+
+### Capacity Reservations
+* Reserve capacity for your EC2 instances in a specific Availability Zone for any duration.
+
+## Instace Lifecycle
+An Amazon EC2 instance transitions through different states from the moment you launch it through to its termination.
+
+| Instance State  | Description                                                                                                                                                                             | Instance usage billing                                                   |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `pending`       | The instance is preparing to enter the running state. An instance enters the pending state when it launches for the first time, or when it is started after being in the stopped state. | Not billed                                                               |
+| `running`       | The instance is running and ready for use.                                                                                                                                              | Billed                                                                   |
+| `stopping`      | The instance is preparing to be stopped or stop-hibernated.                                                                                                                             | Not billed if preparing to stop. <br />Billed if preparing to hibernate. |
+| `stopped`       | The instance is shut down and cannot be used. The instance can be started at any time.                                                                                                  | Not billed                                                               |
+| `shutting-down` | The instance is preparing to be terminated.                                                                                                                                             | Not billed                                                               |
+| `terminated`    | The instance has been permanently deleted and cannot be started.                                                                                                                        | Not billed                                                               |
+
+__Note__: Reserved Instances that applied to terminated instances are billed until the end of their term according to their payment option.
+
+## Placement Groups
+When you launch a new EC2 instance, the EC2 service attempts to place the instance in such a way that all of your instances are spread out across underlying hardware to minimize correlated failures.
+You can use placement groups to influence the placement of your instances.
+You can use the following placement strategies:
+
+### Cluster
+* Packs instances close together inside an Availability Zone
+* This strategy enables workloads to achieve the low-latency network performance.
+* Recommended for applications that benefit from low network latency, high network throughput, or both.
+* Also recommended when the majority of the network traffic is between the instances in the group
+
+### Partition
+* Spreads your instances across logical partitions such that groups of instances in one partition do not share the underlying hardware with groups of instances in different partitions.
+* Each group is divided into logical segments called partitions.
+* Each partition within a placement group has its own set of racks.
+* Each rack has its own network and power source.
+* No two partitions within a placement group share the same racks, allowing you to isolate the impact of hardware failure within your application.
+* Partition placement groups are recommended for large distributed and replicated workloads such as Hadoop, Cassandra, and Kafka.
+
+### Spread
+* A spread placement group is a group of instances that are each placed on distinct racks, with each rack having its own network and power source.
+* A spread placement group can span multiple Availability Zones in the same Region.
+* Spread placement groups are recommended for applications that have a small number of critical instances that should be kept physically isolated from each other.
+
+## Security
+* Each EC2 instance runs with an associated IAM role.
+* You can only attach one IAM role to an instance, but you can attach the same role to many instances.
+* All API requests made by the EC2 instance are done using this role.
+* You are responsible for the following:
+    * Controlling network access to your instances.
+    * Managing the credentials used to connect to your instances.
+    * Managing the guest operating system and software deployed to the guest operating system, including updates and security patches.
+    * Configuring the IAM roles that are attached to the instance and the permissions associated with those roles.
 
 Elastic Block Store (EBS)
 ==
