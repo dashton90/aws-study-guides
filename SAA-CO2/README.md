@@ -9,7 +9,7 @@ It does assume some prior knowledge of AWS resources, and should be used as a co
 
 To test your skills before writing the exam you should try:
 1. Tutorials Dojo's [AWS Certified Solutions Architect Associate Practice Exams](https://portal.tutorialsdojo.com/courses/aws-certified-solutions-architect-associate-practice-exams/)
-2. Stephane Maarek's [Practice Exams | AWS Certified Solutions Architect Associate](https://links.datacumulus.com/aws-cert-solution-architect-pt-coupon)
+2. Stéphane Maarek's [Practice Exams | AWS Certified Solutions Architect Associate](https://links.datacumulus.com/aws-cert-solution-architect-pt-coupon)
 
 
 Table of Contents
@@ -32,9 +32,8 @@ Elastic Compute cloud creates virtual servers in the cloud.
 * AWS provides a number of configurations for CPU, memory, storage, and networking capacity for your instances, known as _instance types_.
 
 ## EC2 Instance Pricing
-```
 For the SAA-C02 exam, the most important pricing models are on-demand, reserved, and spot.
-```
+
 ### On-Demand Instances
 * Spin up instances as needed, and pay by the second.
 * You have full control over when to launch, stop, hibernate, start, reboot, or terminate the instance.
@@ -114,6 +113,55 @@ You can use the following placement strategies:
     * Managing the credentials used to connect to your instances.
     * Managing the guest operating system and software deployed to the guest operating system, including updates and security patches.
     * Configuring the IAM roles that are attached to the instance and the permissions associated with those roles.
+
+
+Auto Scaling
+==
+AWS Auto Scaling lets you build scaling plans that automate how groups of different resources respond to changes in demand. AWS Auto Scaling automatically creates all of the scaling policies and sets targets for you based on your preference. AWS Auto Scaling monitors your application and automatically adds or removes capacity from your resource groups in real-time as demands change.
+
+## EC2 Auto Scaling
+EC2 Auto Scaling helps you ensure that you have the correct number of EC2 instances available to handle the load for your application.
+
+EC2 Auto Scaling has three components:
+* _Auto Scaling groups_ are logical units used for scaling and management. When you create a group you define the maximum, minimum, and desired number of instances.
+* _Configuration templates_ provide the configurations that should be used when launching EC2 instances in the group.
+* _Scaling options_ describe the conditions under which EC2 instances will be spun up or down.
+
+### Auto Scaling Groups (ASGs)
+
+### Configuration Templates
+EC2 Auto Scaling can be configured with either _launch templates_ or _launch configurations_.
+* Launch configurations allow you to specify the AMI, instance type, key pair, security group(s), and a block device mapping of the instances in your ASG.
+* Each ASG can have only one launch configuration.
+* You can create a launch configuration from an existing EC2 instance.
+* Launch templates are similar to launch configurations in that it allows you to specify the parameters of EC2 instances in your ASG.
+* The major benefit of using a launch template over a launch configuration is that you can have multiple versions of a launch template.
+* Launch templates are the current generation of configuration templates, and should be used in favour of launch configurations.
+
+### Scaling Options
+AWS offers a number of ways to scale your groups:
+* Maintain current instance levels at all times
+    * Auto Scaling performs periodic health checks of the instances in your group.
+    * When an instance is unhealthy, Auto Scaling terminates the instance and launches a new one.
+* Scale manually
+    * You can change the size of an existing ASG manually at any time.
+    * You can update the desired capacity of the ASG, or update the instances that are attached to it.
+* Scheduled scaling:
+    * Scheduled scaling lets you scale when there are predictable load changes (for example, an end-of-week batch process that needs to complete).
+    * You can specify a recurring schedule (using cron), start, and end times for your action.
+* Dynamic scaling:
+    * Dynamic scaling allows you to scale your ASG in response to changing demand.
+    * A dynamic scaling policy instructs Amazon EC2 Auto Scaling to track a specific CloudWatch metric.
+    * For example, you can add more instances to an ASG when the average CPU usage of all instances is >50%.
+    * Dynamic auto-scaling offers three scaling policy types:
+        * Target tracking scaling: Increase or decrease the current capacity of the group based on a target value for a specific metric.
+        * Increase or decrease the current capacity of the group based on a set of scaling adjustments, known as step adjustments, that vary based on the size of the alarm breach.
+        * Simple scaling: Increase or decrease the current capacity of the group based on a single scaling adjustment.
+* Predictive scaling:
+    * Predictive scaling uses machine learning to predict capacity requirements based on historical data from CloudWatch.
+    * Predictive scaling is similar to dynamic scaling in that it scales your ASG based on demand. The key difference is that predictive scaling is proactive, and launches capacity in advance of forecasted load while dynamic scaling is reactive in nature.
+    * Predictive scaling is suitable for workloads which are recurring based on the day of the week and/or time of day.
+    * Predictive scaling needs at least 24 hours of historical data to start forecasting, but forecasts are more effective if historical data spans two weeks.
 
 Elastic Block Store (EBS)
 ==
@@ -225,7 +273,7 @@ sequenceDiagram
     Lambda->>Lambda: Attach ENI to Instance 2
     Lambda-->>EC2 Instance 2: start-instance
 ```
-* While the above pattern is valid, EC2 auto-scaling is the preferred approach.
+
 * ENIs are also often used as the primary network interfaces for Docker containers launched on ECS using Fargate.
 * Some commercial software licenses are tied to a particular MAC address. You can license it against the MAC address of the ENI. Later, if you need to change instances or instance types, you can launch a replacement instance with the same ENI and MAC address.
 * ENIs can be used to create a dual-homed environment for your web, application, and database servers. In this example two ENIs are attached to a single EC2 instance which is functioning as a web server:
