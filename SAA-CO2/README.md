@@ -22,6 +22,7 @@ Table of Contents
     * <a href="#network-load-balancing">Network Load Balancing (NLB)</a>
     * <a href="#classic-load-balancing">Classic Load Balancing (CLB)</a>
     * <a href="#gateway-load-balancing">Gateway Load Balancing (GWLB)</a>
+5. <a href="#amazon-cognito">Amazon Cognito</a>
 
 
 Elastic Compute Cloud (EC2)
@@ -449,12 +450,28 @@ GWLBs operate at the network layer (layer 3).
 
 Amazon Cognito
 ==
-The two main components of Amazon Cognito are user pools and identity pools.
+Amazon Cognito provides authentication, authorization, and user management for your web and mobile apps. Your users can sign in directly with a user name and password, or through a third party such as Facebook, Amazon, Google or Apple. The two main components of Amazon Cognito are user pools and identity pools.
 
 User Pools
 ---
-
+User pools are user directories that provide sign-up and sign-in options for your app users.
+* User pools provide
+    * Sign-up, and sign-in services
+    * A customizable web UI for signing in users
+    * User directory management
+    * MFA, phone, and email verification
+* After successfully authenticating a user, Amazon Cognito issues JSON web tokens. These tokens can be
+    * Used to access resources via APIs, such as API Gateway
+    * Exchanged for AWS credentials using identity pools
 
 Identity Pools
 ---
+Identity pools enable you to grant your users access to other AWS services.
 
+
+A common set-up for granting users access to your AWS resources is:
+1. The user signs in through a user pool and receives user pool tokens after a successful authentication.
+2. The app exchanges the user pool tokens for AWS credentials through an identity pool.
+3. Finally, your app user can then use those AWS credentials to access other AWS services.
+
+    ![Cognito](assets/cognito.png)
