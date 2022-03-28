@@ -130,12 +130,19 @@ EC2 Auto Scaling has three components:
 ### Auto Scaling Groups (ASGs)
 An Auto Scaling group contains a collection of EC2 instances which are treated as a logical grouping for the purposes of automatic scaling and management.
 * An Auto Scaling group can launch On-Demand Instances, Spot Instances, or both.
-* When you configure, and launch an Auto Scaling group you can specify the instance types, how much on-demand and spot capacity to launch, and give a weight to each instance type.
-* You can define the percentage of the group to launch as on-demand instances, as well as the base number of on-demand instances.
-    * Auto Scaling will first scale up to the base number of on-demand instances.
-    * The proportion of instances after that will be at the Auto Scaling group's on-demand percentage.
 
-    To better understand base capacity vs scaling percentage look at the table below. In this example, we have an Auto Scaling Group with on-demand base of 12, on-demand percentage of 50%, and spot percentage of 50%.
+#### Using Multiple Instance Types
+* When you configure an Auto Scaling group you can specify the instance types, and optionally give a weight to each instance type.
+* The weight of each instance type determines how much it will contribute to the capacity of the ASG.
+* This is useful if you are not particular with which instance type you use, and care more about the total number of memory/vCPUs in your ASG.
+* By default all instances are treated with the same weight.
+
+#### Using Multiple Purchase Options
+* When you configure an Auto Scaling group you can also specify how much on-demand and spot capacity to launch.
+* You can define the percentage of the group to launch as on-demand instances, as well as the base number of on-demand instances.
+* Auto Scaling will first scale up to the base number of on-demand instances.
+* The proportion of instances after that will be at the Auto Scaling group's on-demand percentage.
+* To better understand base capacity vs scaling percentage look at the table below. In this example, we have an Auto Scaling Group with on-demand base of 12, on-demand percentage of 50%, and spot percentage of 50%.
 
     | Total Instances Running in ASG | Number of On-Demand from Base | Number of On-Demand from Percentage | Number of Spot from Percentage |
     | :----------------------------- | :---------------------------- | :---------------------------------- | :----------------------------- |
@@ -143,6 +150,7 @@ An Auto Scaling group contains a collection of EC2 instances which are treated a
     | 20                             | 12                            | 4                                   | 4                              |
     | 30                             | 12                            | 9                                   | 9                              |
     | 40                             | 12                            | 14                                  | 14                             |
+* You can create an ASG from an existing EC2 instance. All instances in this group will use the same attributes such as AMI, instance type, key pair, etc.
 
 
 ### Configuration Templates
