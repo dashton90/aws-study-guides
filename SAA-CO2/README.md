@@ -128,6 +128,22 @@ EC2 Auto Scaling has three components:
 * _Scaling options_ describe the conditions under which EC2 instances will be spun up or down.
 
 ### Auto Scaling Groups (ASGs)
+An Auto Scaling group contains a collection of EC2 instances which are treated as a logical grouping for the purposes of automatic scaling and management.
+* An Auto Scaling group can launch On-Demand Instances, Spot Instances, or both.
+* When you configure, and launch an Auto Scaling group you can specify the instance types, how much on-demand and spot capacity to launch, and give a weight to each instance type.
+* You can define the percentage of the group to launch as on-demand instances, as well as the base number of on-demand instances.
+    * Auto Scaling will first scale up to the base number of on-demand instances.
+    * The proportion of instances after that will be at the Auto Scaling group's on-demand percentage.
+
+    To better understand base capacity vs scaling percentage look at the table below. In this example, we have an Auto Scaling Group with on-demand base of 12, on-demand percentage of 50%, and spot percentage of 50%.
+
+    | Total Instances Running in ASG | Number of On-Demand from Base | Number of On-Demand from Percentage | Number of Spot from Percentage |
+    | :----------------------------- | :---------------------------- | :---------------------------------- | :----------------------------- |
+    | 10                             | 10                            | 0                                   | 0                              |
+    | 20                             | 12                            | 4                                   | 4                              |
+    | 30                             | 12                            | 9                                   | 9                              |
+    | 40                             | 12                            | 14                                  | 14                             |
+
 
 ### Configuration Templates
 EC2 Auto Scaling can be configured with either _launch templates_ or _launch configurations_.
@@ -162,6 +178,54 @@ AWS offers a number of ways to scale your groups:
     * Predictive scaling is similar to dynamic scaling in that it scales your ASG based on demand. The key difference is that predictive scaling is proactive, and launches capacity in advance of forecasted load while dynamic scaling is reactive in nature.
     * Predictive scaling is suitable for workloads which are recurring based on the day of the week and/or time of day.
     * Predictive scaling needs at least 24 hours of historical data to start forecasting, but forecasts are more effective if historical data spans two weeks.
+
+## Instance Termination
+Auto Scaling uses a _termination policy_ to determine which instance it will terminate first during a scale in event.
+* Scale-in events occur in the following scenarios:
+    * When using dynamic scaling policies and the size of the group decreases as a result of changes in a metric's value.
+    * When using scheduled scaling and the size of the group decreases as a result of a scheduled action.
+    * When you manually decrease the size of the group.
+* Auto Scaling groups have a default termination policy but you can define a custom policy based on your application needs.
+* When terminating instances Auto Scaling uses the following logic:
+    1. If there are instances in multiple Availability Zones terminate an instance in the AZ with the most instances.
+    2. Terminate the instance using the oldest launch configuration. If no instances are using a launch configuration, terminate the instance using the oldest launch template.
+    3. Terminate the instance closest to its next billing hour.
+    4. Terminate an instance at random.
+```mermaid
+flowchart TD
+    subgraph "AWS Default Termination Policy"
+        s("Scale In")
+        az{"Are there instances<br/>in multiple<br/>Availability Zones?"}
+        az_y["Select the Availability Zone with the most instances"]
+        lc{"Are any instances<br/>using a launch<br/>configuration?"}
+        lc_t["Select the instance using the oldest launch configuration"]
+        lc_multiple{"Are there multiple<br/>instances using the oldest<br/>launch configuration?"}
+        lt["Select the instance using the oldest launch template"]
+        lt_multiple{"Are there multiple<br/>instances using the<br/>oldest launch template?"}
+        billing["Select the instance closest to its next billing hour"]
+        billing_multiple{"Are there multiple<br/>instances closest to<br/>their next billing hour?"}
+        random["Select an instance at random"]
+        terminate["Terminate the instance"]
+
+        s --> az
+        az -->|NO| lc
+        az -->|YES| az_y
+        az_y --> lc
+        lc -->|NO| lt
+        lt --> lt_multiple
+        lt_multiple -->|NO| terminate
+        lt_multiple -->|YES| billing
+        billing --> billing_multiple
+        lc -->|YES| lc_t
+        lc_t --> lc_multiple
+        lc_multiple -->|YES| billing
+        lc_multiple -->|NO| terminate
+        billing_multiple -->|NO| terminate
+        billing_multiple -->|YES| random
+        random --> terminate
+    end
+```
+
 
 Elastic Block Store (EBS)
 ==
