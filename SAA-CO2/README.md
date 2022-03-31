@@ -452,8 +452,7 @@ Amazon Cognito
 ==
 Amazon Cognito provides authentication, authorization, and user management for your web and mobile apps. Your users can sign in directly with a user name and password, or through a third party such as Facebook, Amazon, Google or Apple. The two main components of Amazon Cognito are user pools and identity pools.
 
-User Pools
----
+## User Pools
 User pools are user directories that provide sign-up and sign-in options for your app users.
 * User pools provide
     * Sign-up, and sign-in services
@@ -464,14 +463,19 @@ User pools are user directories that provide sign-up and sign-in options for you
     * Used to access resources via APIs, such as API Gateway
     * Exchanged for AWS credentials using identity pools
 
-Identity Pools
----
-Identity pools enable you to grant your users access to other AWS services.
+## Identity Pools
+Identity pools enable you to grant your users access to other AWS services. An identity pool is a store of user identity data specific to your account.
+* Identity pools provide temporary AWS credentials for users who are guests (unauthenticated) and for users who have been authenticated and received a token.
+* While creating an identity pool, you're prompted to update the IAM roles that your users assume.
+* IAM roles work like this
+    * When a user logs in to your app, Amazon Cognito generates temporary AWS credentials for the user.
+    * These temporary credentials are associated with a specific IAM role.
+    * With the IAM role, you can define a set of permissions to access your AWS resources.
 
-
+## How User Pools and Identity Pools Work Together
 A common set-up for granting users access to your AWS resources is:
 1. The user signs in through a user pool and receives user pool tokens after a successful authentication.
 2. The app exchanges the user pool tokens for AWS credentials through an identity pool.
 3. Finally, your app user can then use those AWS credentials to access other AWS services.
 
-    ![Cognito](assets/cognito.png)
+![Cognito](assets/cognito.png)
