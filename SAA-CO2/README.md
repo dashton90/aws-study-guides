@@ -22,7 +22,8 @@ Table of Contents
     * <a href="#network-load-balancing">Network Load Balancing (NLB)</a>
     * <a href="#classic-load-balancing">Classic Load Balancing (CLB)</a>
     * <a href="#gateway-load-balancing">Gateway Load Balancing (GWLB)</a>
-5. <a href="#amazon-cognito">Amazon Cognito</a>
+5. <a href="#amazon-virtual-private-cloud-vpc">Amazon Virtual Private Cloud (VPC)</a>
+6. <a href="#amazon-cognito">Amazon Cognito</a>
 
 
 Elastic Compute Cloud (EC2)
@@ -446,6 +447,99 @@ GWLBs operate at the network layer (layer 3).
 * A target can be one of two types:
     * Instance ID
     * IP Address
+
+
+Amazon Virtual Private Cloud (VPC)
+==
+Amazon Virtual Private Cloud (Amazon VPC) enables you to launch AWS resources into a virtual network that you've defined. It is a virtual network dedicated to your AWS account which is logically isolated from other virtual networks in the AWS Cloud.
+
+When you create a VPC, you must specify a range of IPv4 addresses for the VPC in the form of a Classless Inter-Domain Routing (CIDR) block. You can optionally associate and IPv6 CIDR block with your VPC.
+
+## Subnet
+A _subnet_ is a range of IP addresses in your VPC. The CIDR block of the subnet is a subset of the VPC CIDR block. AWS resources are launched into a specified subnet.
+
+Subnets can be public or private. Any resources launched in a public subnet can connect to the internet.
+
+Each subnet must be associated with a route table, which specifies the allowed routes for outbound traffic leaving the subnet. Every subnet that you create is automatically associated with the main route table for the VPC.
+
+## Route Table
+A route table contains a set of rules, called routes, that determine where network traffic from your subnet or gateway is directed.
+
+Every VPC comes with a main route table. Subnets will use the main route table if they are not explicitly associated with another route table.
+
+Each route in a table specifies a destination and target. The destination is the CIDR block where traffic is destined. The target is where traffic bound for the destination should be sent.
+
+For example, suppose you have a route table that looks like:
+| Destination | Target                |
+| ----------- | --------------------- |
+| 10.1.0.0/16 | local                 |
+| 10.2.0.0/16 | pcx-11223344556677889 |
+| 0.0.0.0/0	  | igw-12345678901234567 |
+
+* Traffic destined for the CIDR block 10.1.0.0/16 will stay within the VPC (`local`)
+* Traffic destined for the CIDR block 10.2.0.0/16 will be sent to peering connection with id `pcx-11223344556677889`
+* All other traffic will be sent to the internet gateway with id `igw-12345678901234567`
+
+CIDR blocks in a route table can overlap. In these cases, the destination with the smaller CIDR block (i.e., larger suffix) takes priority. For example, in the route table above, `10.1.10.0` is part of CIDR blocks 10.1.0.0/16, and 0.0.0.0/0. Since 10.1.0.0/16 represents the smaller CIDR block, the traffic stays within the VPC (`local`). This is known as the longest prefix match.
+
+
+## Security
+There are two ways to control traffic inside your VPC: _network access control lists (ACL)_, and _security groups_.
+
+
+| Network Access Control Lists                                                                                                                                                           | Security Group                                                                                                                                               |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Operates at the subnet level                                                                                                                                                           | Operates at the instance level                                                                                                                               |
+| Supports allow rules and deny rules                                                                                                                                                    | Supports allow rules only                                                                                                                                    |
+| Is stateless: Return traffic must be explicitly allowed by rules                                                                                                                       | Is stateful: Return traffic is automatically allowed, regardless of any rules                                                                                |
+| We process rules in order, starting with the lowest numbered rule, when deciding whether to allow traffic                                                                              | We evaluate all rules before deciding whether to allow traffic                                                                                               |
+| Automatically applies to all instances in the subnets that it's associated with (therefore, it provides an additional layer of defense if the security group rules are too permissive) | Applies to an instance only if someone specifies the security group when launching the instance, or associates the security group with the instance later on |
+
+### Flow logs
+VPC Flow Logs is a feature that captures the IP information going to and from network interfaces in your VPC. Flow log data can be published to  CloudWatch or an S3 bucket where you can view, and analyze it.
+
+* You can create a flow log at the level of a VPC, subnet, or network interface.
+* When creating a flow log you specify:
+    * The resource for which to create the flow log
+    * The type of traffic to capture (accepted traffic, rejected traffic, or all traffic)
+    * Where you want to publish the flow log data
+* VPS Flow Logs the metadata of traffic, and not its contents. It captures things like:
+    * The source IP
+    * The destination IP
+    * The ID of the network interface for which traffic is being recorded
+    * The number of bytes transferred
+* After you create a flow log, you cannot change its configuration. You need to delete the existing flow log and create a new one.
+
+## Internet Connectivity
+### Internet Gateway
+An internet gateway is a horizontally scaled, redundant, and highly available VPC component that allows communication between your VPC and the internet. An internet gateway enables resources in your public subnets to connect to the internet as long the resource has a public IPv4 or IPv6 address.
+
+* An internet gateway serves two purposes:
+    * To provide a target in your VPC route tables for internet-routable traffic.
+    * To perform network address translation for instances that have been assigned public IPv4 addresses
+* After creating an internet gateway, and attaching it to your VPC you will need to add a route to your subnet's route table that directs internet-bound traffic to the internet gateway.
+
+### Network Address Translator
+Network Address Translator (NAT) gateways allow resources in private subnets to connect to services outside your VPC but external services cannot initiate a connection with those instances.
+
+* NAT gateways can be either public or private:
+    * Instances in private subnets can connect to the internet through a public NAT gateway, but cannot receive unsolicited inbound connections from the internet.
+    * Instances in private subnets can connect to other VPCs or your on-premises network through a private NAT gateway.
+* Each NAT gateway is created in a specific Availability Zone.
+* NAT gateways are redundant in their availability zone, and are built to handle up to four million packets per second.
+* A NAT gateway can be associated with exactly one elastic IP.
+* Once an elastic IP is associated with a NAT gateway, it cannot be disassociated.
+* The NAT gateway replaces the source IP address of the instances with the IP address of the NAT gateway.
+
+## VPC Peering
+A VPC peering connection is a networking connection between two VPCs that enables you to route traffic between them privately.
+* Peered VPCs can communicate with each other as if they are within the same network.
+* Peering connections can be made between VPCs:
+    * In the same or different accounts.
+    * In the same or different regions.
+* Peered VPCs cannot have overlapping CIDR blocks.
+* Once a peering connection is established, the owner of each VPC must add a route to one or more of their VPC route tables that points to the IP address range of the other VPC.
+* There is no charge for VPC peering, however there are charges for data transfer across peering connections.
 
 
 Amazon Cognito
