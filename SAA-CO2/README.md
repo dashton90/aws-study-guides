@@ -14,16 +14,47 @@ To test your skills before writing the exam you should try:
 
 Table of Contents
 ==
-1. <a href="#elastic-compute-cloud-ec2">Elastic Compute Cloud (EC2)</a>
-2. <a href="#elastic-block-store-ebs">Elastic Block Store (EBS)</a>
-3. <a href="#elastic-network-interfaces-eni">Elastic Network Interfaces (ENI)</a>
-4. <a href="#elastic-load-balancing-elb">Elastic Load Balancing (ELB)</a>
+1. <a href="#identity-access-management-iam">Identity Access Management (IAM)</a>
+2. <a href="#simple-storage-service-s3">Simple Storage Service (S3)</a>
+3. <a href="#cloudfront">Cloudfront</a>
+4. <a href="#snowball">Snowball</a>
+5. <a href="#storage-gateway">Storage Gateway</a>
+6. <a href="#elastic-compute-cloud-ec2">Elastic Compute Cloud (EC2)</a>
+7. <a href="#elastic-block-store-ebs">Elastic Block Store (EBS)</a>
+8. <a href="#elastic-network-interfaces-eni">Elastic Network Interfaces (ENI)</a>
+9. <a href="#elastic-load-balancing-elb">Elastic Load Balancing (ELB)</a>
     * <a href="#application-load-balancing">Application Load Balancing (ALB)</a>
     * <a href="#network-load-balancing">Network Load Balancing (NLB)</a>
     * <a href="#classic-load-balancing">Classic Load Balancing (CLB)</a>
     * <a href="#gateway-load-balancing">Gateway Load Balancing (GWLB)</a>
-5. <a href="#amazon-virtual-private-cloud-vpc">Amazon Virtual Private Cloud (VPC)</a>
-6. <a href="#amazon-cognito">Amazon Cognito</a>
+10. <a href="#amazon-virtual-private-cloud-vpc">Amazon Virtual Private Cloud (VPC)</a>
+11. <a href="#route-53">Route 53</a>
+12. <a href="#amazon-cognito">Amazon Cognito</a>
+
+
+Identity Access Management (IAM)
+==
+
+
+
+Simple Storage Service (S3)
+==
+
+
+
+Cloudfront
+==
+
+
+
+Snowball
+==
+
+
+
+Storage Gateway
+==
+
 
 
 Elastic Compute Cloud (EC2)
@@ -540,6 +571,11 @@ A VPC peering connection is a networking connection between two VPCs that enable
 * Peered VPCs cannot have overlapping CIDR blocks.
 * Once a peering connection is established, the owner of each VPC must add a route to one or more of their VPC route tables that points to the IP address range of the other VPC.
 * There is no charge for VPC peering, however there are charges for data transfer across peering connections.
+
+
+Route 53
+==
+
 
 
 Amazon Cognito
