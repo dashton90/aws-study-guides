@@ -54,6 +54,20 @@ Snowball
 
 Storage Gateway
 ==
+AWS Storage Gateway is a set of hybrid cloud storage services that provide on-premises access to virtually unlimited cloud storage.
+
+Storage gateway provides four different types of gateways:
+* Tape Gateway acts as a virtual tape library.
+* Amazon S3 File Gateway presents a file interface that enables you to store files as objects in Amazon S3. You can access these files from your data center or Amazon EC2, or as objects directly in Amazon S3.
+* Amazon FSx File Gateway stores file-based application data. Customers can store and access file data in Amazon FSx.
+* Volume Gateway stores point-in-time snapshots of your volumes as Amazon EBS snapshots. These can be either cached or stored volumes.
+
+## Cached vs Stored Volumes
+The main difference between cached and stored volumes is where your primary data is stored. With cached volumes, Amazon S3 is your primary data storage, while retaining frequently accessed data locally in your storage gateway. By using stored volumes, you can store your primary data locally, while asynchronously backing up that data to Amazon S3 as EBS snapshots.
+
+Cached volumes minimize the need to scale your on-premises storage infrastructure, while still providing your applications with low-latency access to their frequently accessed data.
+
+ Stored volumes provide your on-premises applications with low-latency access to their entire datasets. At the same time, they provide durable, offsite backups.
 
 
 
