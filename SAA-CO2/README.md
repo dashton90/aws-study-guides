@@ -17,7 +17,7 @@ Table of Contents
 1. <a href="#identity-access-management-iam">Identity Access Management (IAM)</a>
 2. <a href="#simple-storage-service-s3">Simple Storage Service (S3)</a>
 3. <a href="#cloudfront">Cloudfront</a>
-4. <a href="#snowball">Snowball</a>
+4. <a href="#snow-family">Snow Family</a>
 5. <a href="#storage-gateway">Storage Gateway</a>
 6. <a href="#elastic-compute-cloud-ec2">Elastic Compute Cloud (EC2)</a>
 7. <a href="#elastic-block-store-ebs">Elastic Block Store (EBS)</a>
@@ -47,9 +47,33 @@ Cloudfront
 
 
 
-Snowball
+Snow Family
 ==
+The AWS Snow Family offers a number of physical devices, with varying storage, and built-in compute capacity. They are used to transport large amounts of data into, and out of AWS.
 
+## Snowcone
+Snowcone is the smallest member of the Snow Family. Snowcone is available in two flavours:
+* **Snowcone** has two vCPUs, 4 GB of memory, and 8 TB of hard disk drive (HDD) based storage.
+* **Snowcone SSD** has two vCPUs, 4 GB of memory, and 14 TB of solid state drive (SSD) based storage.
+
+## Snowball Edge
+Snowball Edge provides huge amounts of storage, and compute power. It comes in two device options: storage optimized and computed optimized.
+
+The following table demonstrates the different use cases for Snowcone, and Snowball.
+| Use case                                          | Snowball Edge | Snowcone |
+| ------------------------------------------------- | ------------- | -------- |
+| Import data into Amazon S3                        | ✓             | ✓        |
+| Export from Amazon S3                             | ✓             |          |
+| Durable local storage                             | ✓             |          |
+| Local compute with AWS Lambda                     | ✓             |          |
+| Local compute instances                           | ✓             | ✓        |
+| Durable Amazon S3 storage in a cluster of devices | ✓             |          |
+| Use with AWS IoT Greengrass (IoT)                 | ✓             |          |
+| Transfer files through NFS with a GUI             | ✓             | ✓        |
+| GPU workloads                                     | ✓             |          |
+
+## Snowmobile
+AWS Snowmobile moves up to 100 PB of data in a 45-foot long ruggedized shipping container and is ideal for multi-petabyte or Exabyte-scale digital media migrations and data center shutdowns.
 
 
 Storage Gateway
