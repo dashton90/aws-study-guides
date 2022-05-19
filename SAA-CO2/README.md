@@ -613,8 +613,83 @@ A VPC peering connection is a networking connection between two VPCs that enable
 
 Route 53
 ==
+Amazon Route 53 is a highly available and scalable Domain Name System (DNS) web service. You can use Route 53 to to perform domain registration, DNS routing, and health checking.
+
+## Terminology
+Before getting into the details of Route 53, it is helpful to define some terms relating to DNS.
+* **domain name**: The friendly name of a website that is typed into the address bar (e.g., example.com).
+* **domain registrar**: A company that registers domain names.
+* **top-level domain (TLD)**: The last part of a domain name, such as *.com*, *.org*, or *.dev*. A top-level domain can be either:
+    * **Generic top-level domains**: These TLDs typically give an idea of what is hosted on the website (*.bike*, *.hockey*, *.dev*)
+    * **Geographic top-level domains**: These TLDs are associated with geographic areas such as countries or cities (*.com*, *.ca*, *.to*)
+* **name server** are servers in the DNS that help to translate domain names into the IP addresses that computers use to communicate with one another. A name server can be:
+    * **recursive name server** also known as a DNS resolver is a DNS server managed by your ISP.
+    * **authoritative name server** is a server that has definitive information about one part of the DNS
+    * **root name server** which return a list of TLD servers of the desired domain
+    * **TLD name server** which returns the authoritative name server where the desired domain is stored.
+* **time to live** is the amount of time in seconds that you want a resolver to cache the values for a record before submitting another request to the root server.
 
 
+## DNS
+```mermaid
+sequenceDiagram
+    autonumber
+    actor user as User
+    participant resolver as Resolver
+    participant root as DNS root<br />name server
+    participant TLD as Name server<br />for .com TLD
+    participant auth as Authoritative<br />name server
+    participant web as Web Server for<br/>example.com<br />192.0.2.44
+
+    user->>+resolver: example.com
+    resolver->>+root: example.com
+    root-->>-resolver: Location of .com TLD name server
+    resolver->>+TLD: example.com
+    TLD-->>-resolver: Location of authoritative name server
+    resolver->>+auth: example.com
+    auth-->>-resolver: 192.0.2.44
+    resolver->>-user: 192.0.2.44
+    user->>web: example.com
+    web-->>user: Content for example.com
+```
+
+```mermaid
+flowchart TD
+    root --> .org & .com & .ca
+    .org --> wikipedia.org
+    wikipedia.org --> en.wikipedia.org & fr.wikipedia.org
+    .com --> google.com
+    google.com --> mail.google.com & maps.google.com
+    .com --> amazon.com
+    amazon.com --> smile.amazon.com & aws.amazon.com
+    .ca --> canada.ca
+    canada.ca --> inspection.canada.ca & agriculture.canada.ca
+
+    subgraph Root
+        root
+    end
+    subgraph TLD
+        .org
+        .com
+        .ca
+    end
+    subgraph Domain
+        wikipedia.org
+        google.com
+        amazon.com
+        canada.ca
+    end
+    subgraph Subdomain
+        en.wikipedia.org
+        fr.wikipedia.org
+        mail.google.com
+        maps.google.com
+        smile.amazon.com
+        aws.amazon.com
+        inspection.canada.ca
+        agriculture.canada.ca
+    end
+```
 
 Amazon Cognito
 ==
