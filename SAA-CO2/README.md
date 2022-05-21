@@ -616,7 +616,7 @@ Route 53
 Amazon Route 53 is a highly available and scalable Domain Name System (DNS) web service. You can use Route 53 to to perform domain registration, DNS routing, and health checking.
 
 ## Terminology
-Before getting into the details of Route 53, it is helpful to define some terms relating to DNS.
+Before getting into the details of Route 53, it is helpful to define some terms related to DNS.
 * **domain name**: The friendly name of a website that is typed into the address bar (e.g., example.com).
 * **domain registrar**: A company that registers domain names.
 * **top-level domain (TLD)**: The last part of a domain name, such as *.com*, *.org*, or *.dev*. A top-level domain can be either:
@@ -624,8 +624,8 @@ Before getting into the details of Route 53, it is helpful to define some terms 
     * **Geographic top-level domains**: These TLDs are associated with geographic areas such as countries or cities (*.com*, *.ca*, *.to*)
 * **name server** are servers in the DNS that help to translate domain names into the IP addresses that computers use to communicate with one another. A name server can be:
     * **recursive name server** also known as a DNS resolver is a DNS server managed by your ISP.
-    * **authoritative name server** is a server that has definitive information about one part of the DNS
-    * **root name server** which return a list of TLD servers of the desired domain
+    * **authoritative name server** is a server that has definitive information about one part of the DNS.
+    * **root name server** which return a list of TLD servers of the desired domain.
     * **TLD name server** which returns the authoritative name server where the desired domain is stored.
 * **time to live** is the amount of time in seconds that you want a resolver to cache the values for a record before submitting another request to the root server.
 
@@ -690,6 +690,37 @@ flowchart TD
         agriculture.canada.ca
     end
 ```
+
+## Routing Traffic
+*Records* contain information about how you want to route traffic for a specific domain, and its subdomains. A *hosted zone* is a container for records. A hosted zone has the same name as its corresponding domain.
+
+Route 53 supports a number of DNS record types. The most common are:
+* **A record** is the most basic, and most common record type. It is used to translate a domain name, into a numeric IPv4 address.
+* **AAAA record** is similar to an A record, but it translates a domain name into an IPv6 address.
+* **CNAME record** maps DNS queries for the name of the current record to another domain.
+* **MX record** specifies the names of your mail servers and, if you have two or more mail servers, the priority order.
+* **NS record** identifies the name server for the hosted zone.
+* **PTR record** is the opposite of an A record. It maps an IP address to a domain.
+* **Alias record** is a record type specific to Route 53. Alias records let you route traffic to an AWS resource such as an S3 bucket or Cloudfront distribution.
+
+## Routing Policies
+When you create a record, you choose a routing policy. A routing policy determines how Route 53 responds to queries. The types of routing policies are:
+* **Simple routing** routes traffic to a single resource. You can specify multiple values in a single record. In this case Route 53 returns all values to the recursive resolver in random order.
+* **Failover routing** routes traffic to a primary resource when the resource is healthy or to a different resource when the first fails a health check.
+* **Geolocation routing** routes traffic based on the geographic location of the user.
+* **Geoproximity routing** routes traffic to your resources based on the geographic location of your users and your resources. By default, traffic will be directed to the resource closest to the user. You can optionally route more traffic or less to a given resource by specifying a value, known as a *bias*.
+* **Latency routing** routes traffic to whichever region provides the lowest latency for your user.
+* **Multivalue answer routing** is similar to simple routing, except that in cases where you specify multiple values for a single record Route 53 will only return values for healthy resources.
+* **Weighted routing** routes traffic for a single domain or subdomain name to multiple resources. You specify how much traffic is routed to each resource. This is useful for load balancing, testing new software versions, and blue/green deployment.
+
+## Health Checks
+Health checks monitor the health and performance of your web applications, web servers, and other resources. Health checks can monitor:
+* The health of a specified resource, such as a web server.
+* The status of other health checks.
+* The status of an Amazon CloudWatch alarm.
+
+Depending on how you've configured routing for your resources, when a resource is unhealthy Route 53 will failover to a healthy resource.
+
 
 Amazon Cognito
 ==
