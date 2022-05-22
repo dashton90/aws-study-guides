@@ -20,16 +20,21 @@ Table of Contents
 4. <a href="#snow-family">Snow Family</a>
 5. <a href="#storage-gateway">Storage Gateway</a>
 6. <a href="#elastic-compute-cloud-ec2">Elastic Compute Cloud (EC2)</a>
-7. <a href="#elastic-block-store-ebs">Elastic Block Store (EBS)</a>
-8. <a href="#elastic-network-interfaces-eni">Elastic Network Interfaces (ENI)</a>
-9. <a href="#elastic-load-balancing-elb">Elastic Load Balancing (ELB)</a>
+7. <a href="#elastic-fabric-adapter">Elastic Fabric Adapter</a>
+8. <a href="#elastic-block-store-ebs">Elastic Block Store (EBS)</a>
+9. <a href="#elastic-network-interfaces-eni">Elastic Network Interfaces (ENI)</a>
+10. <a href="#elastic-load-balancing-elb">Elastic Load Balancing (ELB)</a>
     * <a href="#application-load-balancing">Application Load Balancing (ALB)</a>
     * <a href="#network-load-balancing">Network Load Balancing (NLB)</a>
     * <a href="#classic-load-balancing">Classic Load Balancing (CLB)</a>
     * <a href="#gateway-load-balancing">Gateway Load Balancing (GWLB)</a>
-10. <a href="#amazon-virtual-private-cloud-vpc">Amazon Virtual Private Cloud (VPC)</a>
-11. <a href="#route-53">Route 53</a>
-12. <a href="#amazon-cognito">Amazon Cognito</a>
+11. <a href="#amazon-virtual-private-cloud-vpc">Amazon Virtual Private Cloud (VPC)</a>
+12. <a href="#route-53">Route 53</a>
+13. <a href="simple-queuing-service-sqs">Simple Queuing Service (SQS)</a>
+14. <a href="simple-workflow-service-swf">Simple Workflow Service (SWF)</a>
+15. <a href="simple-notification-service-sns">Simple Notification Service (SNS)</a>
+16. <a href="aws-batch">AWS Batch</a>
+17. <a href="#amazon-cognito">Amazon Cognito</a>
 
 
 Identity Access Management (IAM)
@@ -304,6 +309,9 @@ flowchart TD
         random --> terminate
     end
 ```
+
+Elastic Fabric Adapter
+==
 
 
 Elastic Block Store (EBS)
@@ -720,6 +728,17 @@ Health checks monitor the health and performance of your web applications, web s
 * The status of an Amazon CloudWatch alarm.
 
 Depending on how you've configured routing for your resources, when a resource is unhealthy Route 53 will failover to a healthy resource.
+
+Simple Queuing Service (SQS)
+==
+
+
+Simple Workflow Service (SWF)
+==
+
+
+Simple Notification Service (SNS)
+==
 
 
 Amazon Cognito
