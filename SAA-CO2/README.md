@@ -29,12 +29,13 @@ Table of Contents
     * <a href="#classic-load-balancing">Classic Load Balancing (CLB)</a>
     * <a href="#gateway-load-balancing">Gateway Load Balancing (GWLB)</a>
 11. <a href="#amazon-virtual-private-cloud-vpc">Amazon Virtual Private Cloud (VPC)</a>
-12. <a href="#route-53">Route 53</a>
-13. <a href="simple-queuing-service-sqs">Simple Queuing Service (SQS)</a>
-14. <a href="simple-workflow-service-swf">Simple Workflow Service (SWF)</a>
-15. <a href="simple-notification-service-sns">Simple Notification Service (SNS)</a>
-16. <a href="aws-batch">AWS Batch</a>
-17. <a href="#amazon-cognito">Amazon Cognito</a>
+12. <a href="#aws-direct-connect">AWS Direct Connect</a>
+13. <a href="#route-53">Route 53</a>
+14. <a href="simple-queue-service-sqs">Simple Queue Service (SQS)</a>
+15. <a href="simple-workflow-service-swf">Simple Workflow Service (SWF)</a>
+16. <a href="simple-notification-service-sns">Simple Notification Service (SNS)</a>
+17. <a href="aws-batch">AWS Batch</a>
+18. <a href="#amazon-cognito">Amazon Cognito</a>
 
 
 Identity Access Management (IAM)
@@ -44,8 +45,65 @@ Identity Access Management (IAM)
 
 Simple Storage Service (S3)
 ==
+Amazon Simple Storage Service (Amazon S3) is an object storage service.
+* An object is any file, and any metadata that describes the file.
+* A bucket is the container for objects.
+* Each object in a bucket has a unique identifier called a key.
+
+### Storage Classes
+S3 offers different storage classes for objects depending on your use case scenario and performance access requirements.
+* S3 Standard is the default storage class. This class is best for performance-sensitive use cases which require millisecond access time.
+* S3 Intelligent-Tiering is designed to optimize storage costs by automatically moving data to the most cost-effective access tier. S3 Intelligent-Tiering automatically stores objects in three access tiers: a Frequent Access, Infrequent Access, and Archive Instant Access. Objects that are uploaded or transitioned to S3 Intelligent-Tiering are automatically stored in the Frequent Access tier. Objects that have not been accessed in 30 consecutive days are automatically moved to the Infrequent Access tier. Objects that have not been accessed for 90 consecutive days will automatically move to the Archive Instant Access tier.
+```mermaid
+flowchart LR
+    object
+    subgraph "Frequent Access"
+        objectFA[object]
+    end
+    subgraph "Infrequent Access"
+        objectIA[object]
+    end
+    subgraph "Archive Instant Access"
+        objectAIA[object]
+    end
+    object-.->|upload|objectFA
+    objectFA-.->|30 days|objectIA
+    objectIA-.->|60 days|objectAIA
+    
+    classDef intelligent-tiering stroke-dasharray: 5 5;
+    class objectFA,objectIA,objectAIA intelligent-tiering
+```
+* S3 Standard-IA designed for long-lived and infrequently accessed data. Objects are available for millisecond access, but Amazon S3 charges a retrieval fee for these objects. With Standard-IA, objects are stored redundantly across multiple availability zones.
+* S3 One Zone-IA is similar to Standard-IA, except objects are stored in only one availability zone. One Zone-IA is a good choice if data can be recreated in the event an availability zone goes down.
+* S3 Glacier Instant Retrieval is used for archiving data that is rarely accessed and requires milliseconds retrieval. This storage class offers a lower storage cost than Standard-IA, but has a higher data access cost.
+* S3 Glacier Flexible Retrieval is used for archives where data might need to be retrieved in minutes.
+* S3 Glacier Deep Archive is the cheapest storage class in S3. It has a default retrieval time of 12 hours.
+
+| Storage class                 | Designed for                                                                          | Durability (designed for) | Availability (designed for)        | Availability Zones | Min storage duration | Min billable object size | Other considerations                                                                             |
+| ----------------------------- | ------------------------------------------------------------------------------------- | ------------------------- | ---------------------------------- | ------------------ | -------------------- | ------------------------ | ------------------------------------------------------------------------------------------------ |
+| S3 Standard                   | Frequently accessed data (more than once a month) with millisecond access             | 99.999999999%             | 99.99%                             | >= 3               | None                 | None                     | None                                                                                             |
+| S3 Standard-IA                | Long-lived, infrequently accessed data (once a month) with millisecond access         | 99.999999999%             | 99.9%                              | >= 3               | 30 days              | 128 KB                   | Per GB retrieval fees apply.                                                                     |
+| S3 Intelligent-Tiering        | Data with unknown, changing, or unpredictable access patterns                         | 99.999999999%             | 99.9%                              | >= 3               | None                 | None                     | Monitoring and automation fees per object apply. No retrieval fees.                              |
+| S3 One Zone-IA                | Recreatable, infrequently accessed data (once a month) with millisecond access        | 99.999999999%             | 99.5%                              | 1                  | 30 days              | 128 KB                   | Per GB retrieval fees apply. Not resilient to the loss of the Availability Zone.                 |
+| S3 Glacier Instant Retrieval  | Long-lived, archive data accessed once a quarter with millisecond access              | 99.999999999%             | 99.9%                              | >= 3               | 90 days              | 128 KB                   | Per GB retrieval fees apply.                                                                     |
+| S3 Glacier Flexible Retrieval | Long-lived archive data accessed once a year with retrieval times of minutes to hours | 99.999999999%             | 99.99% (after you restore objects) | >= 3               | 90 days              | 40 KB                    | Per GB retrieval fees apply. You must first restore archived objects before you can access them. |
+| S3 Glacier Deep Archive       | Long-lived archive data accessed less than once a year with retrieval times of hours  | 99.999999999%             | 99.99% (after you restore objects) | >= 3               | 180 days             | 40 KB                    | Per GB retrieval fees apply. You must first restore archived objects before you can access them. |
 
 
+
+### Lifecycle
+You can add rules in an S3 Lifecycle configuration to tell Amazon S3 to transition objects to another Amazon S3 storage class.
+
+The chart below shows the supported transitions.
+![S3 Lifecycle Transitions](assets/lifecycle-transitions-v3.png)
+
+Lifecycle rules can be combined to manage the entire life of an object. For example, you can create a lifecycle rule which transitions objects to Standard-IA after 30 days, another which transitions them to Glacier Flexible Retrieval after 90 days, and a third which deletes the objects after five years.
+
+You should be aware of the following constraints when creating lifecycle configurations:
+1. For transitions from S3 Standard to S3 Standard-IA, S3 Intelligent-Tiering, S3 One Zone-IA, or S3 Glacier Instant Retrieval, objects smaller than 128KB will not be transitioned.
+2. For transitions from S3 Standard-IA to S3 Intelligent-Tiering, or S3 Glacier Instant Retrieval, objects smaller than 128KB will not be transitioned.
+3. Before you transition objects from the S3 Standard to S3 Standard-IA or S3 One Zone-IA, you must store them at least 30 days in the S3 Standard storage class.
+4. S3 Standard-IA and S3 One Zone-IA have a minimum 30-day storage charge.
 
 Cloudfront
 ==
@@ -618,6 +676,15 @@ A VPC peering connection is a networking connection between two VPCs that enable
 * Once a peering connection is established, the owner of each VPC must add a route to one or more of their VPC route tables that points to the IP address range of the other VPC.
 * There is no charge for VPC peering, however there are charges for data transfer across peering connections.
 
+## AWS PrivateLink
+AWS PrivateLink allows you to connect your VPC to AWS resources, and use them as if they were inside your VPC. 
+
+
+AWS Direct Connect
+==
+AWS Direct Connect is a networking service that provides an alternative to using the internet to connect to AWS. Using AWS Direct Connect, data that would have previously been transported over the internet is delivered through a private network connection between your facilities and AWS. Direct Connect can reduce costs, increase bandwidth, and provide a more consistent network experience than internet-based connections. All AWS services can be used with Direct Connect.
+
+
 
 Route 53
 ==
@@ -729,8 +796,9 @@ Health checks monitor the health and performance of your web applications, web s
 
 Depending on how you've configured routing for your resources, when a resource is unhealthy Route 53 will failover to a healthy resource.
 
-Simple Queuing Service (SQS)
+Simple Queue Service (SQS)
 ==
+SQS gives you access to a message queue which allows you to integrate and decouple distributed software systems and components.
 
 
 Simple Workflow Service (SWF)
@@ -738,6 +806,10 @@ Simple Workflow Service (SWF)
 
 
 Simple Notification Service (SNS)
+==
+
+
+AWS Batch
 ==
 
 
