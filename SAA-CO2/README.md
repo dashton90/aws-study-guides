@@ -679,6 +679,15 @@ A VPC peering connection is a networking connection between two VPCs that enable
 ## AWS PrivateLink
 AWS PrivateLink allows you to connect your VPC to AWS resources, and use them as if they were inside your VPC. 
 
+With PrivateLink you create an *endpoint service* to make your service available in a region. Each endpoint service is identified by a service name.
+
+The user of a service is called a *service consumer*. Service consumers can access endpoint services from AWS resources, or from on-premises servers. A service consumer creates a *VPC endpoint* to connect their VPC to an endpoint service.
+
+There are three types of VPC endpoints:
+* `Interface`: Interface endpoints are used to send traffic to endpoint services that use a Network Load Balancer to distribute traffic. Traffic destined for the endpoint service is resolved using DNS.
+* `GatewayLoadBalancer`: Gateway Load Balancer endpoints are used to send traffic to a Gateway Load Balancer.
+* `Gateway`: Gateway endpoints are used to send traffic to Amazon S3 or DynamoDB using private IP addresses. You route traffic from your VPC to the gateway endpoint using route tables. Gateway endpoints do not enable AWS PrivateLink.
+
 
 AWS Direct Connect
 ==
