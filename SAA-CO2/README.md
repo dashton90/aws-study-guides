@@ -1,5 +1,5 @@
-# AWS SAA-C02 Study Guide
 
+# AWS SAA-C02 Study Guide
 This guide is designed to give you a solid understanding of all material covered on the AWS Certified Solutions Architect - Associate exam.
 It does assume some prior knowledge of AWS resources, and should be used as a companion guide to one or more of:
 1. Stéphane Maarek's [Ultimate AWS Certified Solutions Architect Associate](https://links.datacumulus.com/aws-certified-sa-associate-coupon)
@@ -31,10 +31,10 @@ Table of Contents
 11. <a href="#amazon-virtual-private-cloud-vpc">Amazon Virtual Private Cloud (VPC)</a>
 12. <a href="#aws-direct-connect">AWS Direct Connect</a>
 13. <a href="#route-53">Route 53</a>
-14. <a href="simple-queue-service-sqs">Simple Queue Service (SQS)</a>
-15. <a href="simple-workflow-service-swf">Simple Workflow Service (SWF)</a>
-16. <a href="simple-notification-service-sns">Simple Notification Service (SNS)</a>
-17. <a href="aws-batch">AWS Batch</a>
+14. <a href="#simple-queue-service-sqs">Simple Queue Service (SQS)</a>
+15. <a href="#simple-workflow-service-swf">Simple Workflow Service (SWF)</a>
+16. <a href="#simple-notification-service-sns">Simple Notification Service (SNS)</a>
+17. <a href="#aws-batch">AWS Batch</a>
 18. <a href="#amazon-cognito">Amazon Cognito</a>
 
 
@@ -107,7 +107,41 @@ You should be aware of the following constraints when creating lifecycle configu
 
 Cloudfront
 ==
+Amazon CloudFront is a web service that speeds up distribution of your static and dynamic web content, such as .html, .css, .js, and image files, to your users. CloudFront delivers your content through a worldwide network of data centers called edge locations. When a user requests content that you're serving with CloudFront, the request is routed to the edge location that provides the lowest latency, so that content is delivered with the best possible performance.
 
+CloudFront points of presence (POPs, also know as edge locations) are deployed globally, close to your users to speed up serving content. CloudFront also offers regional edge caches which sit between POPs, and your origin server. Regional edge caches have larger caches than POPs, and are used to cache less frequently accessed objects.
+
+A few things to note about POPs, and regional edge caches:
+* Regional edge caches have feature parity with POPs.
+* Proxy HTTP methods (PUT, POST, PATCH, OPTIONS, and DELETE) go directly to the origin from the POPs and do not proxy through the regional edge caches.
+* Dynamic requests, as determined at request time, do not flow through regional edge caches, but go directly to the origin.
+* When the origin is an Amazon S3 bucket and the request’s optimal regional edge cache is in the same AWS Region as the S3 bucket, the POP skips the regional edge cache and goes directly to the S3 bucket.
+
+CloudFront delivers content to users by first the checking CloudFront POP with the lowest latency. If the object exists in the CloudFront cache, CloudFront returns it to the user. If it does not, CloudFront forwards the request to the origin server (S3 bucket, HTTP server, etc.), the origin server returns it to the CloudFront edge location, and CloudFront returns it to the user. CloudFront then adds the the object to its cache.
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant CloudFront
+    participant AWS
+
+    User ->> CloudFront: Requests static content
+    alt Content is in Cache
+        CloudFront -->> User: Return content
+    else Content is Not in Cache
+        CloudFront ->> AWS: Requests content from origin server
+        AWS ->> CloudFront: Return content
+        CloudFront ->> User: Return content
+        CloudFront -->> CloudFront: Add content to cache
+    end
+```
+
+### Replacing, and Removing Content
+All content cached in CloudFront has a TTL (time-to-live). CloudFront will serve a file from its cache until the cache duration expires. The first time a user requests the file after expiration, CloudFront will request the file from the origin server.
+
+By default, files expire after 24 hours, but this can be changed with the `Minimum TTL`, `Maximum TTL`, and `Default TTL` CloudFront parameters.
+
+If you delete, or modify an object in your origin server, CloudFront will still serve the cached version until the objects TTL expires. If you need to remove a file from CloudFront edge caches before it expires, you can invalidate the file from edge caches. When you invalidate a file, CloudFront returns to the origin to fetch the latest version of the file the next time it is requested by a user.
 
 
 Snow Family
@@ -120,7 +154,7 @@ Snowcone is the smallest member of the Snow Family. Snowcone is available in two
 * **Snowcone SSD** has two vCPUs, 4 GB of memory, and 14 TB of solid state drive (SSD) based storage.
 
 ## Snowball Edge
-Snowball Edge provides huge amounts of storage, and compute power. It comes in two device options: storage optimized and computed optimized.
+Snowball Edge provides huge amounts of storage (80TB of usable HDD), and compute power. It comes in two device options: storage optimized and computed optimized.
 
 The following table demonstrates the different use cases for Snowcone, and Snowball.
 | Use case                                          | Snowball Edge | Snowcone |
@@ -557,7 +591,7 @@ ALBs support load balancing of applications using HTTP and HTTPS (layer 7).
     * The IP address of the client (`X-Forwarded-For` request header)
 * A target can be one of three types:
     * Instance ID
-    * IP Address
+    * (Private) IP Address
     * Lambda function
 * By default, an Application Load Balancer routes each request independently to a registered target based on the chosen load-balancing algorithm.
 * _Sticky sessions_ enable the load balancer to bind a user's session to a specific target. This is useful for servers that maintain state information.
@@ -568,7 +602,7 @@ NLBs support load balancing of applications on TCP and UDP (layer 4).
 * A network load balancer can handle millions of requests per second.
 * A target can be one of three types:
     * Instance ID
-    * IP Address
+    * (Private) IP Address
     * Application Load Balancer
 
 ## Classic Load Balancing
@@ -808,6 +842,52 @@ Depending on how you've configured routing for your resources, when a resource i
 Simple Queue Service (SQS)
 ==
 SQS gives you access to a message queue which allows you to integrate and decouple distributed software systems and components.
+
+### Architecture
+There are three main parts to a distributed messaging system: the components of your system (both *producers* which write to the queue, and *consumers* which read from it), the queue, and the messages in the queue.
+Messages in a queue are redundantly stored across SQS servers. Unretrieved messages will be retained in the queue for between 60 seconds to 14 days. The default retention period is 4 days.
+
+The lifecycle of a message works like this:
+1. A producer (component 1) sends `messageA` to the SQS queue. The message is stored redunantly across SQS servers.
+2. When a consumer (component 2) is ready to process a message, it sends a request to SQS, which returns `messageA`.
+3. Once the consumer has finished processing the message, it deletes the message from the queue.
+
+Messages can be written and retrieved individually, or in batches, up to a maximum of ten messages per batch.
+
+### Visibility Timeout
+SQS does not automatically delete a message once it has sent it to a consumer, in case you don't successfully received it. You must send a separate request acknowledging you've received and processed the message.
+When SQS retrieves a message, it starts a visibility timeout. While the visibility timeout of a message is active, the message will not be sent to any other consumers. If your consumer does not call the `DeleteMessage` action before the visibility timeout expires, the message will become available for consumption by other consumers.
+
+Visibility timeout can be anywhere from 0 seconds to 12 hours. The default is 30 seconds.
+
+### Short vs Long Polling
+Polling is the way in which messages are retrieved from SQS servers.
+
+With short polling, only a subset of servers are queried to find messages that are available to include in the response. SQS sends the response right away, even if the query found no messages.
+
+With long polling, all servers are queried for messages. SQS sends a response after it collects at least one available message, up to the maximum number of messages specified in the request.
+
+Long polling helps reduce the cost of using SQS, by decreasing the number of empty responses.
+
+### Queue Types
+SQS offers two queue types: first-in-first-out (FIFO), and standard.
+
+### FIFO Queues
+* FIFO Queues strictly preserve ordering. Messages will be sent in the same order they are received.
+* Messages are delivered exactly once, and remains available until a consumer processes and deletes it. Duplicates aren't introduced into the queue.
+* FIFO supports 300 API calls per second. This translates to up to 3000 messages per second, if messages are sent in 10 message batches.
+
+### Standard Queues
+* Standard Queues does best-effort ordering of messages. Occasionally, messages are delivered in an order different from which they were sent.
+* Messages are guaranteed to be delivered at least once, but may be delivered more than once.
+* Standard Queues support nearly an unlimited number of API calls per second.
+
+In summary,
+| Standard               | FIFO                        |
+| ---------------------- | --------------------------- |
+| Unlimited Throughput   | High Throughput             |
+| At-Least-Once Delivery | Exactly-Once Processing     |
+| Best-Effort Ordering   | First-In-First-Out Delivery |
 
 
 Simple Workflow Service (SWF)
