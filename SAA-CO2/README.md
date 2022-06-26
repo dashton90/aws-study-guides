@@ -17,6 +17,7 @@ Table of Contents
 1. <a href="#identity-access-management-iam">Identity Access Management (IAM)</a>
 2. <a href="#simple-storage-service-s3">Simple Storage Service (S3)</a>
 3. <a href="#cloudfront">Cloudfront</a>
+3. <a href="#global-accelerator">Global Accelerator</a>
 4. <a href="#snow-family">Snow Family</a>
 5. <a href="#storage-gateway">Storage Gateway</a>
 6. <a href="#elastic-compute-cloud-ec2">Elastic Compute Cloud (EC2)</a>
@@ -89,8 +90,6 @@ flowchart LR
 | S3 Glacier Flexible Retrieval | Long-lived archive data accessed once a year with retrieval times of minutes to hours | 99.999999999%             | 99.99% (after you restore objects) | >= 3               | 90 days              | 40 KB                    | Per GB retrieval fees apply. You must first restore archived objects before you can access them. |
 | S3 Glacier Deep Archive       | Long-lived archive data accessed less than once a year with retrieval times of hours  | 99.999999999%             | 99.99% (after you restore objects) | >= 3               | 180 days             | 40 KB                    | Per GB retrieval fees apply. You must first restore archived objects before you can access them. |
 
-
-
 ### Lifecycle
 You can add rules in an S3 Lifecycle configuration to tell Amazon S3 to transition objects to another Amazon S3 storage class.
 
@@ -104,6 +103,14 @@ You should be aware of the following constraints when creating lifecycle configu
 2. For transitions from S3 Standard-IA to S3 Intelligent-Tiering, or S3 Glacier Instant Retrieval, objects smaller than 128KB will not be transitioned.
 3. Before you transition objects from the S3 Standard to S3 Standard-IA or S3 One Zone-IA, you must store them at least 30 days in the S3 Standard storage class.
 4. S3 Standard-IA and S3 One Zone-IA have a minimum 30-day storage charge.
+
+### Transfer Acceleration
+S3 Transfer Acceleration is a bucket-level feature that increases file transfer speed between your clients and S3 buckets. 
+
+* Transfer acceleration works by sending your traffic to the globally distributed edge locations in Amazon CloudFront. The data is sent from the edge location to S3 over an optimized path on the private AWS network.
+* Once you enable Transfer Acceleration on a bucket, you can use it by targeting the endpoint `<bucketname>.s3-accelerate.amazonaws.com`
+* Transfer Acceleration works best on large files. If you are transferring files smaller than ~1GB you might want to use Cloudfront instead of Transfer Acceleration. 
+
 
 Cloudfront
 ==
@@ -142,6 +149,32 @@ All content cached in CloudFront has a TTL (time-to-live). CloudFront will serve
 By default, files expire after 24 hours, but this can be changed with the `Minimum TTL`, `Maximum TTL`, and `Default TTL` CloudFront parameters.
 
 If you delete, or modify an object in your origin server, CloudFront will still serve the cached version until the objects TTL expires. If you need to remove a file from CloudFront edge caches before it expires, you can invalidate the file from edge caches. When you invalidate a file, CloudFront returns to the origin to fetch the latest version of the file the next time it is requested by a user.
+
+
+Global Accelerator
+==
+AWS Global Accelerator helps improve application performace by creating a more direct path from your clients to your AWS services. It does this by routing your traffic to the optimal regional endpoint. Traffic is then sent to AWS over the AWS global network.
+
+Global Accelerator includes the following components:
+* **Static IP addresses**: Global Accelerator provides you with a set of two static IP addresses. The IP addresses serve as single fixed entry points for your clients. IP addresses remain assigned to you accelerator until it is _deleted_.
+* **Accelerator**: An accelerator directs traffic to endpoints over the AWS global network. Global Accelerator offers two types of accelerators: standard, and custom.
+* **DNS name**: Global Accelerator assigns each accelerator a default DNS name that points to the static IP addresses associated with your accelerator.
+* **Network zone**: A network zone services the static IP addresses for your accelerator from a unique IP subnet. Network zones are similar to availability zones in that if a network zone becomes unavailable, clients can retry on the healthy IP in the other network zone.
+* **Listener**: A listener processes inbound connections from clients to Global Accelerator for TCP, UDP, or both TCP and UDP protocols. Each listener has one or more endpoint groups associated with it, and traffic is forwarded to endpoints in one of the groups.
+* **Endpoint group**: Endpoint groups accept traffic from listeners. Each endpoint group is associated with a specific AWS Region.
+* **Endpoint**: An endpoint is the resource that Global Accelerator directs traffic to. Each endpoint is associated with an endpoint group.
+
+## Standard Accelerators
+Standard accelerators endpoints can be Network Load Balancers, Application Load Balancers, EC2 instances, or Elastic IP addresses.
+
+When using a standard accelerator, Global Accelerator continuously monitors the health of all endpoints and instantly begins directing traffic to another available endpoint when it determines that an active endpoint is unhealthy.
+
+Standard accelerators direct traffic to endpoint groups based on the location of the clients, and the health of the endpoint group. You can set a custom amount of traffic to send to different endpoint groups by using the traffic dial to increase (dial up) or decrease (dial down) the traffic send to each endpoint group. This is useful for cases such as blue/green testing.
+
+## Custom Accelerators
+Custom accelerators direct user traffic based on custom business logic. Endpoints for custom routing accelerators must be virtual private cloud (VPC) subnets, and a custom routing accelerator can only route traffic to Amazon EC2 instances in those subnets.
+
+Custom accelerators are useful in cases such as gaming, where you want traffic for a group of users to all be routed to the same EC2 server regardless of geolocation.
 
 
 Snow Family
@@ -401,6 +434,9 @@ flowchart TD
         random --> terminate
     end
 ```
+
+## Temporary Changes
+
 
 Elastic Fabric Adapter
 ==
@@ -933,3 +969,40 @@ A common set-up for granting users access to your AWS resources is:
 3. Finally, your app user can then use those AWS credentials to access other AWS services.
 
 ![Cognito](assets/cognito.png)
+
+
+GuardDuty
+==
+Amazon GuardDuty is a continuous security monitoring service. It analyzes the following data sources:
+* CloudTrail event logs
+* CloudTrail management events
+* CloudTrail data events for S3
+* EKS audit logs
+* VPC flow logs
+* DNS logs
+
+It uses threat intelligence feeds (e.g., malicious IP and domain lists), and machine learning to identify unauthorized, and malicious activity in your AWS environment.
+
+## Key Points
+* Amazon GuardDuty is a regional service. Any configurations must be repeated in each region you want to monitor.
+* GuardDuty findings are associated with a **Detector**. A Detector is simply an object which represents the GuardDuty service. You can only have one detector per region per account.
+
+## Findings
+Potential security issues are called findings. Findings are structured as `<ThreatPurpose>:<ResourceTypeAffected>/<ThreatFamilyName>.<DetectionMechanism>!<Artifact>`.
+* ThreatPurpose describes the primary purpose of a threat, an attack type or a stage of a potential attack.
+* ResourceTypeAffected describes which AWS resource type is identified in this finding as the potential target of an adversary. This value can be either EC2, S3, IAM, or EKS.
+* ThreatFamilyName describes the overall threat or potential malicious activity that GuardDuty is detecting.
+* DetectionMechanism describes the method in which GuardDuty detected the finding.
+* Artifact describes a specific resource that is owned by a tool that is used in the malicious activity.
+
+For each finding, your resource is either an _actor_ or a _target_.
+* Actor means that your resource was carrying out suspicious activity.
+* Target means that your resource was targeted by suspicious activity.
+
+
+Inspector
+==
+Amazon Inspector scans your EC2 workloads, and containers in ECR for software vulnerabilities and unintended network exposure.
+
+## Findings
+When a software vulnerability or network issue is discovered, Amazon Inspector creates a finding. A finding describes the vulnerability, identifies the affected resource, rates the severity of the vulnerability, and provides remediation guidance.
