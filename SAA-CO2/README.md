@@ -23,6 +23,7 @@ Table of Contents
 6. <a href="#elastic-compute-cloud-ec2">Elastic Compute Cloud (EC2)</a>
 7. <a href="#elastic-fabric-adapter">Elastic Fabric Adapter</a>
 8. <a href="#elastic-block-store-ebs">Elastic Block Store (EBS)</a>
+10. <a href="#elastic-file-system-efs">Elastic File System (EFS)</a>
 9. <a href="#elastic-network-interfaces-eni">Elastic Network Interfaces (ENI)</a>
 10. <a href="#elastic-load-balancing-elb">Elastic Load Balancing (ELB)</a>
     * <a href="#application-load-balancing">Application Load Balancing (ALB)</a>
@@ -436,10 +437,23 @@ flowchart TD
 ```
 
 ## Temporary Changes
+In some cases you might want to take an instance offline, but not have Auto Scaling terminate the instance (for example, updating or troubleshooting the instance). You can do this a few ways.
+
+1. Put the instance from `InService` into `Standby`.
+    * By default, Auto Scaling will decrement the desired capacity of your ASG.
+    * When you put the instance back in service, the desired capacity is incremented.
+2. Suspend the `HealthCheck` and `ReplaceUnhealthy` processes. This suspend health checks on your entire Auto Scaling Group, so if an in service instance becomes unhealthy it will not be replaced.
+
+## Lifecycle Hooks
+Lifecycle hooks allow you to perform custom actions on your EC2 instances before they are added to your ASG or before they are terminated.
+* When a scale-out event occurs, the EC2 instance enters a wait state during which time you can execute a custom script before moving the instance to an `InService` state.
+* When a scale-in event occurs, a lifecycle hook pauses the instance before it is terminated and sends you a notification using Amazon EventBridge. You can use this EventBridge notification to perform an action (e.g., trigger a Lambda function to download EC2 logs).
+* Once the lifecycle action is complete, the script should send a `complete-lifecycle-action` command to continue.
 
 
-Elastic Fabric Adapter
-==
+
+The full lifecycle of an instance in an ASG is diagrammed below
+![Auto Scaling Lifecycle](assets/auto_scaling_lifecycle.png)
 
 
 Elastic Block Store (EBS)
@@ -494,7 +508,7 @@ An Amazon EBS volume is a durable, block-level storage device that you can attac
     * All volumes created from those snapshots
 * You cannot directly encrypt existing unencrypted volumes or snapshots.
 * You can create encrypted volumes or snapshots from unencrypted volumes or snapshots.
-* The diagram below demonstrates how to create an encrypted volume an from an unencrypted volume.
+* The diagram below demonstrates how to create an encrypted volume from an unencrypted volume.
 ```mermaid
 flowchart LR
     A[Unencrypted<br/>EBS Volume]
@@ -516,6 +530,19 @@ flowchart LR
 * Snapshots are incremental backups - when you create a new snapshot, only the blocks that have changes since the last snapshot are saved.
 * When you create an EBS volume based on a snapshot, the replicated volume loads data in the background so that you can begin using it immediately.
 * It is good practice to tag all instances and snapshots.
+
+
+Elastic File System (EFS)
+==
+Elastic File System provides a scalable NFS file system for use with AWS and on-prem resources. EFS scales dynamically as you add and remove files. With Amazon EFS, you pay only for the storage used by your file system.
+
+* EFS offers four storage classes
+    * Standard stores your data in at least three availability zones within a region.
+    * Standard-IA stores your data in at least three availability zones within a region. Per GB retrieval fees apply.
+    * One Zone stores your data in a single availability zone. Data is automatically backed up using AWS Backup.
+    * One Zone-IA stores your data in a single availability zone. Data is automatically backed up using AWS Backup. Per GB retrieval fees apply.
+* EFS can be mounted on multiple EC2 instances across multiple availability zones within the same region so all instances can share a common data source.
+
 
 
 Elastic Network Interfaces (ENI)
