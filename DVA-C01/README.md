@@ -84,7 +84,7 @@ A deployment configuration defines the rules used by CodeDeploy during a deploym
 * All-at-once: All traffic is shifted from the original service to the updated service all at once.
 
 ## Application Specification
-CodeDeploy uses an Application Specification file to manage each deployment as a series of lifecycle event hooks, which are defined in the file.
+CodeDeploy uses an Application Specification (AppSpec) file to manage each deployment as a series of lifecycle event hooks, which are defined in the file.
 
 ### ECS & Lambda
 The AppSpec file for ECS and Lambda deployments has the following structure
